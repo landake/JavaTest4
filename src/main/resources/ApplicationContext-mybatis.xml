@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+<context:component-scan base-package="com.hand"/>
+<aop:aspectj-autoproxy />
+<context:property-placeholder location="classpath:db.properties"/>
+
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="${driverClasss}"></property>
+    <property name="url" value="${jdbcUrl}"></property>
+    <property name="username" value="${usrname}"></property>
+    <property name="password" value="${password}"></property>
+</bean>
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="mapperLocations" value="classpath:com.hand.infra.mapper/*Mapper.xml"/>
+    <property name="plugins">
+        <array>
+            <bean id="sqlStatementInterceptor" class="com.hand.interceptor.SqlStatementInterceptor" />
+        </array>
+    </property>
+
+</bean>
+<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+    <constructor-arg index="0">
+        <ref bean="sqlSessionFactory"/>
+    </constructor-arg>
+</bean>
+
+<bean id="transactionManagers" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="rollbackOnCommitFailure" value="true"></property>
+</bean>
+<tx:annotation-driven transaction-manager="transactionManagers"/>
+
+</beans>
